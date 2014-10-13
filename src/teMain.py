@@ -9,8 +9,9 @@ from psychopy import visual, core, event, monitors
 import numpy as np
 import os
 import math
-#import teConfig
-import pyTobii as tobii
+from iViewXAPI import *            #iViewX library
+from iViewXAPIReturnCodes import *
+
 
 class Exp():
     def __init__(self,config,resume):
@@ -99,20 +100,88 @@ class Exp():
                              'practice1': imgPractice1,
                              'practice2': imgPractice2,
                              'experiment': imgExperiment}
+        #=======================================================================
+        # SMI Handling
+        #=======================================================================
+        Filename = str(self.config.subject)+'_SMI'
+        self.outputfile = self.config.outputFolder+"/vp"+str(self.config.subject)+"/" + Filename
+        self.outputfilecalib = self.config.outputFolder+"/vp"+str(self.config.subject)+"/" + Filename + '_Calib'
+        # ---------------------------------------------
+        #---- connect to iViewX
+        # ---------------------------------------------
+        listenip='169.254.219.112' #Eyetracker IP
+        targetip='169.254.154.199'
 
-        tobiiFilename = str(self.config.subject)+'_tobii'
-        if self.resume and os.path.exists(self.config.outputFolder+"/vp"+str(self.config.subject)+"/"+tobiiFilename+".tob"):
-            fileExists = True
-            ext = 0
-            while(fileExists):
-                ext += 1
-                tobiiFilename = str(self.config.subject)+'_tobii_'+str(ext)
-                if not os.path.exists(self.config.outputFolder+"/vp"+str(self.config.subject)+"/"+tobiiFilename+".tob"):
-                    fileExists = False
+        res = iViewXAPI.iV_SetLogger(c_int(1), c_char_p("iViewXSDK_TrackerTest.txt"))
+        res = iViewXAPI.iV_Connect(c_char_p(targetip), c_int(4444), c_char_p(listenip), c_int(5555))
 
-        #tobii.init(self.window, self.config.outputFolder+"/vp"+str(self.config.subject)+"/", tobiiFilename)
-        #self.useTobii = True
-        self.useTobii = False
+        print 'res:' +str(res)
+        res = iViewXAPI.iV_GetSystemInfo(byref(systemData))
+        print "iV_GetSystemInfo: " + str(res)
+        print "Samplerate: " + str(systemData.samplerate)
+        print "iViewX Version: " + str(systemData.iV_MajorVersion) + "." + str(systemData.iV_MinorVersion) + "." + str(systemData.iV_Buildnumber)
+        print "iViewX API Version: " + str(systemData.API_MajorVersion) + "." + str(systemData.API_MinorVersion) + "." + str(systemData.API_Buildnumber)
+        # ---------------------------------------------
+        #---- configure and start calibration
+        # ---------------------------------------------
+        self.useSMI = False
+
+
+
+
+#===============================================================================
+# Tobii handling deprecated
+#===============================================================================
+#===============================================================================
+#         tobiiFilename = str(self.config.subject)+'_tobii'
+#         if self.resume and os.path.exists(self.config.outputFolder+"/vp"+str(self.config.subject)+"/"+tobiiFilename+".tob"):
+#             fileExists = True
+#             ext = 0
+#             while(fileExists):
+#                 ext += 1
+#                 tobiiFilename = str(self.config.subject)+'_tobii_'+str(ext)
+#                 if not os.path.exists(self.config.outputFolder+"/vp"+str(self.config.subject)+"/"+tobiiFilename+".tob"):
+#                     fileExists = False
+#
+#         #tobii.init(self.window, self.config.outputFolder+"/vp"+str(self.config.subject)+"/", tobiiFilename)
+#         #self.useSMI = True
+#         self.useSMI = False
+#===============================================================================
+
+    def calibration(self,calibrate):
+        '''
+        # SMI calibration method
+        '''
+        if calibrate:
+            cali=1
+            while cali==1:
+                calibrationData = CCalibration(9, 1, 1, 0, 1, 250, 220, 2, 20, b"")
+                accuracyData = CValidation(-1,-1,-1,-1)
+                res = iViewXAPI.iV_SetupCalibration(byref(calibrationData))
+                print "iV_SetupCalibration " + str(res)
+                res = iViewXAPI.iV_Calibrate()
+                print "iV_Calibrate " + str(res)
+                res = iViewXAPI.iV_Validate()
+                print "iV_Validate " + str(res)
+
+                res = iViewXAPI.iV_GetAccuracy(byref(accuracyData), 0)
+                print "iV_GetAccuracy " + str(res)
+                print "deviationXLeft " + str(accuracyData.deviationLX) + " deviationYLeft " + str(accuracyData.deviationLY)
+                print "deviationXRight " + str(accuracyData.deviationRX) + " deviationYRight " + str(accuracyData.deviationRX)
+                res = iViewXAPI.iV_SaveCalibration(self.outputfilecalib)
+                print "Saving Calibration data " + str(res)
+                while True:
+                    self.window.flip()
+                    if event.getKeys('return'):
+                        cali=2
+                        break
+                    elif event.getKeys('w'):
+                        cali=1
+                        break
+
+        else :
+            print "no calibaration"
+
 
     def drawNoisyBackground(self):
         '''Method to draw noise background
@@ -368,8 +437,9 @@ class Exp():
     # Run trial block <blockNum> with given list of trials
     def runBlock(self,blockNum,trialList):
         for i in np.arange(trialList.shape[0]):
-            if self.useTobii:
-                tobii.setTrigger(self.trial)
+            if self.useSMI:
+                #tobii.setTrigger(self.trial)
+                iViewXAPI.iV_SendImageMessage(c_char_p('Trigger '+ str(self.trial)))
             resp, rt, exitResp, exitRT = self.runTrial(*trialList[i])
 
             if self.save:
@@ -447,10 +517,10 @@ class Exp():
         if self.resume:
             self.showText("Versuch wird fortgesetzt")
 
-        if self.useTobii and not self.resume:
+        if self.useSMI and not self.resume:
             self.showText("Kalibrierung")
-            tobii.calibrate(perfect=True)
-            tobii.showCalibrationResultNet()
+            self.calibration(self.useSMI)
+            #tobii.showCalibrationResultNet()
             event.waitKeys()
 
 
@@ -481,11 +551,11 @@ class Exp():
         for b in np.arange(self.practiceStartBlock, 0):
             trials = self.createTrialList("practice2")
             self.showText("Block "+str(b+1+self.config.practice2Blocks))
-            if self.useTobii:
-                tobii.startTracking()
+            if self.useSMI:
+                iViewXAPI.iV_StartRecording()
             self.runBlock(b, trials)
-            if self.useTobii:
-                tobii.stopTracking()
+            if self.useSMI:
+                iViewXAPI.iV_StopRecording() #stop eye tracker
             # feedback
             blockIdx = np.nonzero(self.resultData[:,1] == b)[0]
             correctIdx = np.nonzero(self.resultData[blockIdx,4] == self.resultData[blockIdx,5])[0]
@@ -501,11 +571,11 @@ class Exp():
         for b in np.arange(self.startBlock,self.config.blocks+1):
             trials = self.createTrialList("experiment")
             self.showText("Block "+str(b))
-            if self.useTobii:
-                tobii.startTracking()
+            if self.useSMI:
+                iViewXAPI.iV_StartRecording()
             self.runBlock(b,trials)
-            if self.useTobii:
-                tobii.stopTracking()
+            if self.useSMI:
+                iViewXAPI.iV_StopRecording() #stop eye tracker
             # feedback
             blockIdx = np.nonzero(self.resultData[:,1] == b)[0]
             correctIdx = np.nonzero(self.resultData[blockIdx,4] == self.resultData[blockIdx,5])[0]
@@ -517,10 +587,12 @@ class Exp():
 
     def quit(self):
         self.window.close()
-        if self.useTobii:
-            tobii.stopTracking()
-            tobii.kill()
-            tobii._gazeProcessor.closeFiles()
+        if self.useSMI:
+            iViewXAPI.iV_StopRecording() #stop eye tracker
+            res = iViewXAPI.iV_SaveData(str(self.outputfile), str('TunnelExpSmi'), str(self.config.subject), 1)
+            iViewXAPI.iV_Disconnect()
+            ## saving files while using quit method
+            ##tobii._gazeProcessor.closeFiles()
         core.quit()
 
     def loadExistingData(self):
