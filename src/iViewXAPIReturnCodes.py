@@ -10,4 +10,4 @@ def HandleError(ret):
          print "Could not establish connection. Check if Eye Tracker is installed and running."
     else:
         print "Return Code is " + res + ". Refer to the iView X SDK Manual for its meaning."
-	return
+        return

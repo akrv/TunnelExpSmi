@@ -10,7 +10,6 @@ import numpy as np
 import os
 import math
 from iViewXAPI import *            #iViewX library
-from iViewXAPIReturnCodes import *
 
 
 class Exp():
@@ -110,7 +109,7 @@ class Exp():
         #---- connect to iViewX
         # ---------------------------------------------
         listenip='169.254.219.112' #Eyetracker IP
-        targetip='195.253.22.1'
+        targetip='195.253.22.238'
 
         res = iViewXAPI.iV_SetLogger(c_int(1), c_char_p("iViewXSDK_TrackerTest.txt"))
         res = iViewXAPI.iV_Connect(c_char_p(targetip), c_int(4444), c_char_p(listenip), c_int(5555))

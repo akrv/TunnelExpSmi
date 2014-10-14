@@ -1,4 +1,4 @@
-6.32318	iViewX API ApiLogger - Status: 1
-6.33473	error in establishing communication for receiving (binding socket) IP: 169.254.219.112 Port: 5555
-6.33481	Connection for receiving data could not be established: 123
-6.3352	No response from iView. Please check the Port settings
+5.18089	iViewX API ApiLogger - Status: 1
+5.18555	error in establishing communication for receiving (binding socket) IP: 169.254.219.112 Port: 5555
+5.18561	Connection for receiving data could not be established: 123
+5.18566	No response from iView. Please check the Port settings
