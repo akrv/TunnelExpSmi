@@ -101,15 +101,17 @@ class Exp():
                              'experiment': imgExperiment}
         #=======================================================================
         # SMI Handling
+        # filefolder should be common for both the computers???
         #=======================================================================
         Filename = str(self.config.subject)+'_SMI'
         self.outputfile = self.config.outputFolder+"/vp"+str(self.config.subject)+"/" + Filename
         self.outputfilecalib = self.config.outputFolder+"/vp"+str(self.config.subject)+"/" + Filename + '_Calib'
+
         # ---------------------------------------------
         #---- connect to iViewX
         # ---------------------------------------------
-        listenip='169.254.219.112' #Eyetracker IP
-        targetip='195.253.22.238'
+        listenip='169.254.219.112'  #Eyetracker laptop IP
+        targetip='195.253.22.238'   #psychoPy computer IP
 
         res = iViewXAPI.iV_SetLogger(c_int(1), c_char_p("iViewXSDK_TrackerTest.txt"))
         res = iViewXAPI.iV_Connect(c_char_p(targetip), c_int(4444), c_char_p(listenip), c_int(5555))
@@ -554,7 +556,7 @@ class Exp():
                 iViewXAPI.iV_StartRecording()
             self.runBlock(b, trials)
             if self.useSMI:
-                iViewXAPI.iV_StopRecording() #stop eye tracker
+                iViewXAPI.iV_PauseRecording() #pause recording until start of next trial
             # feedback
             blockIdx = np.nonzero(self.resultData[:,1] == b)[0]
             correctIdx = np.nonzero(self.resultData[blockIdx,4] == self.resultData[blockIdx,5])[0]
@@ -574,7 +576,7 @@ class Exp():
                 iViewXAPI.iV_StartRecording()
             self.runBlock(b,trials)
             if self.useSMI:
-                iViewXAPI.iV_StopRecording() #stop eye tracker
+                iViewXAPI.iV_PauseRecording() #pause recording until start of next trial
             # feedback
             blockIdx = np.nonzero(self.resultData[:,1] == b)[0]
             correctIdx = np.nonzero(self.resultData[blockIdx,4] == self.resultData[blockIdx,5])[0]
@@ -588,8 +590,8 @@ class Exp():
         self.window.close()
         if self.useSMI:
             iViewXAPI.iV_StopRecording() #stop eye tracker
-            res = iViewXAPI.iV_SaveData(str(self.outputfile), str('TunnelExpSmi'), str(self.config.subject), 1)
-            iViewXAPI.iV_Disconnect()
+            res = iViewXAPI.iV_SaveData(str(self.outputfile), str('TunnelExpSmi'), str(self.config.subject), 0)
+            iViewXAPI.iV_Disconnect() # disconnect the eyetracker connection
             ## saving files while using quit method
             ##tobii._gazeProcessor.closeFiles()
         core.quit()
