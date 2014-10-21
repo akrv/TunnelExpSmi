@@ -126,29 +126,7 @@ class Exp():
         # ---------------------------------------------
         #---- configure and start calibration
         # ---------------------------------------------
-        self.useSMI = False
-
-
-
-
-#===============================================================================
-# Tobii handling deprecated
-#===============================================================================
-#===============================================================================
-#         tobiiFilename = str(self.config.subject)+'_tobii'
-#         if self.resume and os.path.exists(self.config.outputFolder+"/vp"+str(self.config.subject)+"/"+tobiiFilename+".tob"):
-#             fileExists = True
-#             ext = 0
-#             while(fileExists):
-#                 ext += 1
-#                 tobiiFilename = str(self.config.subject)+'_tobii_'+str(ext)
-#                 if not os.path.exists(self.config.outputFolder+"/vp"+str(self.config.subject)+"/"+tobiiFilename+".tob"):
-#                     fileExists = False
-#
-#         #tobii.init(self.window, self.config.outputFolder+"/vp"+str(self.config.subject)+"/", tobiiFilename)
-#         #self.useSMI = True
-#         self.useSMI = False
-#===============================================================================
+        self.useSMI = True
 
     def calibration(self,calibrate):
         '''
