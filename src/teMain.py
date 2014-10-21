@@ -111,8 +111,8 @@ class Exp():
         # ---------------------------------------------
         #---- connect to iViewX
         # ---------------------------------------------
-        listenip='169.254.219.112'  #Eyetracker laptop IP
-        targetip='195.253.22.238'   #psychoPy computer IP
+        listenip='169.254.154.119'  #Eyetracker laptop IP
+        targetip='169.254.154.5'   #psychoPy computer IP
 
         res = iViewXAPI.iV_SetLogger(c_int(1), c_char_p("iViewXSDK_TrackerTest.txt"))
         res = iViewXAPI.iV_Connect(c_char_p(targetip), c_int(4444), c_char_p(listenip), c_int(5555))
