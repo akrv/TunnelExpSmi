@@ -103,9 +103,10 @@ class Exp():
         # SMI Handling
         # filefolder should be common for both the computers???
         #=======================================================================
-        Filename = str(self.config.subject)+'_SMI'
-        self.outputfile = self.config.outputFolder+"/vp"+str(self.config.subject)+"/" + Filename
-        self.outputfilecalib = self.config.outputFolder+"/vp"+str(self.config.subject)+"/" + Filename + '_Calib'
+        pathOnLaptop = 'D:\\Renker\\TunnelExpD\\data\\'
+        Filename = str(self.config.subject)+'_SMI_'
+        self.outputfile = pathOnLaptop + Filename + str(self.config.subject)
+        self.outputfilecalib = pathOnLaptop+ Filename + '_Calib' + str(self.config.subject)
 
         # ---------------------------------------------
         #---- connect to iViewX
@@ -171,14 +172,7 @@ class Exp():
                 print "deviationXRight " + str(accuracyData.deviationRX) + " deviationYRight " + str(accuracyData.deviationRX)
                 res = iViewXAPI.iV_SaveCalibration(self.outputfilecalib)
                 print "Saving Calibration data " + str(res)
-                while True:
-                    self.window.flip()
-                    if event.getKeys('return'):
-                        cali=2
-                        break
-                    elif event.getKeys('w'):
-                        cali=1
-                        break
+                self.showText('w - Wiederholen, Leertaste - Akzeptiert')
 
         else :
             print "no calibaration"
