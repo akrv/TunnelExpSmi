@@ -412,7 +412,7 @@ class Exp():
         for i in np.arange(trialList.shape[0]):
             if self.useSMI:
                 #tobii.setTrigger(self.trial)
-                iViewXAPI.iV_SendImageMessage(c_char_p('Trigger '+ str(self.trial)))
+                iViewXAPI.iV_SendImageMessage(c_char_p('Trigger '+ str(self.trial)+'.jpg'))
             resp, rt, exitResp, exitRT = self.runTrial(*trialList[i])
 
             if self.save:
